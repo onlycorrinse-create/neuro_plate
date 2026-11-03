@@ -251,7 +251,8 @@ summary{cursor:pointer;font-weight:600}
       if (t.startsWith("🔴")) p.className = "crit r";
       else if (t.startsWith("🟡")) p.className = "crit y";
       else if (t.startsWith("🟢")) p.className = "crit g";
-      else if (first && t.startsWith("🍽")) p.className = "dish";
+      else if (t.startsWith("🍽")) p.className = "dish";
+      else if (first && t.startsWith("Разбор по системе")) p.className = "disc";
       else if (t.startsWith("Это не медицинская")) p.className = "disc";
       p.textContent = t; answerEl.append(p); first = false;
     }

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { compose, parseModelJson } from "../lib/compose.js";
 
 // Один запрос = один ответ. Никакой истории: каждый разбор начинается с чистого листа.
 export default async function handler(req, res) {
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
 
   const body = {
     model: process.env.MODEL || "claude-sonnet-5-5",
-    max_tokens: 2500,
+    max_tokens: 4000,
     // Промпт кэшируется на стороне API: повторные разборы дешевле и быстрее.
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content }],
@@ -83,14 +84,18 @@ export default async function handler(req, res) {
     return;
   }
 
-  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  res.status(200).json({
-    text,
-    model: data.model,
-    seconds: Math.round((Date.now() - started) / 1000),
-    usage: data.usage,
-    stop_reason: data.stop_reason,
-  });
+  const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  finish(res, raw, { model: data.model, seconds: Math.round((Date.now() - started) / 1000), usage: data.usage, stop_reason: data.stop_reason });
+}
+
+// Модель вернула JSON → собираем текст из готовых фраз.
+function finish(res, raw, meta) {
+  const j = parseModelJson(raw);
+  if (!j) {
+    res.status(502).json({ error: "Модель вернула не JSON. Попробуйте ещё раз. Начало ответа: " + String(raw).slice(0, 300) });
+    return;
+  }
+  res.status(200).json({ text: compose(j), json: j, ...meta });
 }
 
 // OpenAI (тот же GPT, что в ChatGPT): включается, если задан OPENAI_API_KEY.
@@ -101,7 +106,8 @@ async function viaOpenAI({ system, message, image, res }) {
   }
   const body = {
     model: process.env.MODEL,
-    max_completion_tokens: 4000,
+    max_completion_tokens: 16000,
+    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: system },
       { role: "user", content: userContent },
@@ -132,8 +138,7 @@ async function viaOpenAI({ system, message, image, res }) {
     return;
   }
   const choice = data.choices?.[0];
-  res.status(200).json({
-    text: (choice?.message?.content || "").trim(),
+  finish(res, (choice?.message?.content || "").trim(), {
     model: data.model,
     seconds: Math.round((Date.now() - started) / 1000),
     usage: data.usage,
