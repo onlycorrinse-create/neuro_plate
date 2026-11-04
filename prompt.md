@@ -89,16 +89,25 @@
 - `protein_ok`: true — есть полноценный белок (список Д) в заметном количестве. Творог, сыр и другие молочные продукты полноценным белком здесь не считаются.
 - `fiber` (список Г): "enough" — продукты из Г занимают заметную часть порции (примерно от четверти); в супе считаются и варёные овощи, и зелень; "little" — есть, но мало (пара листиков, немного ягод, только огурец/помидор); "none" — нет совсем.
 - `fast_carbs`: "many" — быстрые углеводы (список Е) — основа блюда; "some" — есть, но не основа (например, картофель в супе); "none".
-- `fat_high`: true — блюдо из списка Ж; есть крем, сливочное масло, сливки, сгущёнка, майонез, жирный соус, много сыра; фритюр; заметно много масла.
+- `fat_high`: true — блюдо из списка Ж; есть крем, сливочное масло, сливки, сгущёнка, майонез, жирный соус, много сыра; фритюр; заметно много масла. Небольшое количество гхи или другого масла, разрешённого курсом для жарки, — не fat_high.
 - `oil_unknown`: true — блюдо жареное или тушёное, а масло не указано («не знаю» = не указано). Варёное, запечённое без масла, суп — false.
 - `inflammatory` (по списку А): "many" — есть сахар, белая мука, молочное, трансжиры/жарево или колбасные изделия, либо ≥2 любых продуктов из списка А; "some" — ровно один, и это паслёновые, хлеб на закваске, немного твёрдого сыра или горького шоколада; "none".
-- `symptoms` — список, только из этих значений:
-  - "heartburn" (изжога): inflammatory "many"; fat_high; сладкое; кофе, алкоголь или газировка к еде;
-  - "bloating" (вздутие): продукты из списка Б; блюдо из списка Ж; быстрые углеводы вместе с жиром; большая порция;
-  - "belching" (отрыжка): fat_high; молочное; жареное; большая порция; много жидкости за едой; газировка;
-  - "heaviness" (тяжесть): fat_high; белок вместе с крахмалистыми продуктами; жареное; большая порция;
-  - "mucus" (слизь в горле): есть молочные продукты (кроме гхи и небольшого количества твёрдого сыра).
-  Пустой список — только если ни одно условие не выполнено.
+- `symptoms` — список, только из этих значений: "heartburn" (изжога), "bloating" (вздутие), "belching" (отрыжка), "heaviness" (тяжесть), "mucus" (слизь в горле).
+- `reasons` — почему эти симптомы: список кодов причин. **Каждый симптом в `symptoms` должен опираться хотя бы на одну причину из `reasons`**, и наоборот: нет причин — нет симптомов.
+
+| Код причины | Когда ставить | Даёт симптомы |
+|---|---|---|
+| "inflammatory" | inflammatory = "many" | heartburn |
+| "gas" | продукты из списка Б (грибы, бобовые, сырой лук/чеснок/капуста, редис и т. д.) | bloating |
+| "fried" | жарка на неподходящем или неизвестном масле (подсолнечное, «растительное», сливочное, не указано); фритюр; тёмная корочка; много масла. **Жарка в небольшом количестве гхи, рафинированного оливкового, масла авокадо или горчичного рафинированного — НЕ причина**: курс рекомендует эти масла для жарки | heaviness, belching |
+| "fat" | fat_high = true | heartburn, heaviness, belching |
+| "sweet" | сладкое в тарелке; блюдо из списка Ж | heartburn, bloating |
+| "dairy" | молочные продукты (кроме гхи и небольшого количества твёрдого сыра) | mucus, belching |
+| "starch_protein" | белок вместе с крахмалистыми продуктами | heaviness |
+| "portion" | большая порция | bloating, heaviness, belching |
+| "drink" | стакан и больше жидкости за едой, газировка, кофе или алкоголь к еде | heartburn, belching |
+
+  Пустые `symptoms` и `reasons` — только если ни одна причина не подходит.
 - `evening`: true — это ужин; или тип приёма не указан, а блюдо сладкое, жирное или молочное.
 
 ## 5. Пункты
@@ -132,7 +141,7 @@
 {
   "plate": true,
   "dish": "перечень блюд одной строкой, без оценок и оговорок",
-  "summary": {"name": "...", "name_pl": false, "role": "main|dessert|snack", "protein_ok": true, "fiber": "enough|little|none", "fast_carbs": "many|some|none", "fat_high": false, "oil_unknown": false, "inflammatory": "many|some|none", "symptoms": ["heartburn","bloating","belching","heaviness","mucus"], "evening": false},
+  "summary": {"name": "...", "name_pl": false, "role": "main|dessert|snack", "protein_ok": true, "fiber": "enough|little|none", "fast_carbs": "many|some|none", "fat_high": false, "oil_unknown": false, "inflammatory": "many|some|none", "symptoms": ["heartburn","bloating","belching","heaviness","mucus"], "reasons": ["inflammatory","gas","fried","fat","sweet","dairy","starch_protein","portion","drink"], "evening": false},
   "criteria": {
     "compat": {"status": "...", "variant": "A|B|C"},
     "satiety": {"status": "...", "variant": "A|B", "missing": "fat|protein|complex — только для yellow B"},
@@ -157,7 +166,7 @@
 {
   "plate": true,
   "dish": "сырники с клубникой и сметаной, кофе",
-  "summary": {"name": "Сырники со сметаной", "name_pl": true, "role": "dessert", "protein_ok": false, "fiber": "little", "fast_carbs": "many", "fat_high": true, "oil_unknown": true, "inflammatory": "many", "symptoms": ["heartburn","bloating","belching","mucus"], "evening": true},
+  "summary": {"name": "Сырники со сметаной", "name_pl": true, "role": "dessert", "protein_ok": false, "fiber": "little", "fast_carbs": "many", "fat_high": true, "oil_unknown": true, "inflammatory": "many", "symptoms": ["heartburn","bloating","belching","mucus"], "reasons": ["inflammatory","fat","sweet","dairy","fried"], "evening": true},
   "criteria": {
     "compat": {"status":"red","variant":"B"},
     "satiety": {"status":"red","variant":"A"},
@@ -174,7 +183,7 @@
 {
   "plate": true,
   "dish": "суп на овощном бульоне с куриными фрикадельками, картофелем, морковью и укропом",
-  "summary": {"name": "Суп с фрикадельками", "name_pl": false, "role": "main", "protein_ok": true, "fiber": "enough", "fast_carbs": "some", "fat_high": false, "oil_unknown": false, "inflammatory": "some", "symptoms": ["heaviness"], "evening": false},
+  "summary": {"name": "Суп с фрикадельками", "name_pl": false, "role": "main", "protein_ok": true, "fiber": "enough", "fast_carbs": "some", "fat_high": false, "oil_unknown": false, "inflammatory": "some", "symptoms": ["heaviness"], "reasons": ["starch_protein"], "evening": false},
   "criteria": {
     "compat": {"status":"red","variant":"A"},
     "satiety": {"status":"yellow","variant":"A"},
