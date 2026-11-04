@@ -85,17 +85,18 @@ export default async function handler(req, res) {
   }
 
   const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  finish(res, raw, { model: data.model, seconds: Math.round((Date.now() - started) / 1000), usage: data.usage, stop_reason: data.stop_reason });
+  finish(res, raw, message, { model: data.model, seconds: Math.round((Date.now() - started) / 1000), usage: data.usage, stop_reason: data.stop_reason });
 }
 
 // Модель вернула JSON → собираем текст из готовых фраз.
-function finish(res, raw, meta) {
+function finish(res, raw, message, meta) {
   const j = parseModelJson(raw);
   if (!j) {
     res.status(502).json({ error: "Модель вернула не JSON. Попробуйте ещё раз. Начало ответа: " + String(raw).slice(0, 300) });
     return;
   }
-  res.status(200).json({ text: compose(j), json: j, ...meta });
+  const full = /Хватает ли до следующего приёма:\s*хватает/i.test(message || "");
+  res.status(200).json({ text: compose(j, { full }), json: j, ...meta });
 }
 
 // OpenAI (тот же GPT, что в ChatGPT): включается, если задан OPENAI_API_KEY.
@@ -138,7 +139,7 @@ async function viaOpenAI({ system, message, image, res }) {
     return;
   }
   const choice = data.choices?.[0];
-  finish(res, (choice?.message?.content || "").trim(), {
+  finish(res, (choice?.message?.content || "").trim(), message, {
     model: data.model,
     seconds: Math.round((Date.now() - started) / 1000),
     usage: data.usage,
