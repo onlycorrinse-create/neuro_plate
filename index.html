@@ -83,152 +83,102 @@ summary{cursor:pointer;font-weight:600}
 .prompt-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
 .notice{background:var(--amber-soft);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.chat-wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;justify-content:space-between}
+.topbar .code{display:flex;gap:8px;align-items:center}
+.topbar .code input{width:160px;padding:7px 10px}
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;min-height:420px}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;line-height:1.45;overflow-wrap:anywhere;white-space:pre-wrap}
+.msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-top-left-radius:4px}
+.msg.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-top-right-radius:4px}
+.msg.me img{display:block;max-width:220px;max-height:220px;border-radius:10px}
+.msg.answer-msg{max-width:100%;white-space:normal;background:var(--surface)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start;max-width:100%}
+.chip{font:inherit;font-weight:500;border:1px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:99px;padding:7px 14px;cursor:pointer}
+.chip:hover{background:var(--accent-soft)}
+.composer{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{min-height:44px;flex:1}
+.upload{position:relative;overflow:hidden}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.typing{color:var(--muted);font-style:italic}
+.answer .gap{height:6px}
+.answer li{margin:2px 0}
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<div class="chat-wrap">
+  <div class="topbar">
     <div>
       <h1>Разбор тарелки</h1>
-      <p class="sub">Фото и ответы на 6 вопросов → разбор по промпту бота. Каждый разбор — отдельный запрос без памяти о прошлых: 1 промпт, 1 ответ.</p>
+      <p class="sub">Так бот будет разговаривать с человеком. Каждый разбор — отдельный запрос без памяти о прошлых.</p>
     </div>
-  </header>
-
-  <div class="grid">
-    <form class="panel" id="form" autocomplete="off">
-      <div>
-        <label for="code">Код доступа<span class="hint">Выдаёт тот, кто развернул сайт. Запоминается в этом браузере.</span></label>
-        <input type="text" id="code" placeholder="Код доступа">
-      </div>
-
-      <h2>Тарелка</h2>
-      <div>
-        <div class="drop" id="drop">
-          <input type="file" id="photo" accept="image/jpeg,image/png,image/webp,image/gif,image/heic" aria-label="Фото тарелки">
-          <div class="ph" id="ph"><b>Фото тарелки</b>Нажмите, перетащите файл или вставьте из буфера</div>
-          <img id="preview" alt="Фото тарелки" hidden>
-        </div>
-        <div class="photo-actions"><span id="photoName">Фото не выбрано — бот должен ответить «Не вижу тарелку»</span><button type="button" class="link" id="clearPhoto" hidden>Убрать фото</button></div>
-      </div>
-
-      <div class="fields">
-        <div>
-          <label for="q1">1. Что в тарелке?<span class="hint">Все ингредиенты, включая соус, заправку и специи. Для покупного — состав или точное название.</span></label>
-          <textarea id="q1" placeholder="Например: гречка, куриные котлеты, салат из огурцов и зелени без заправки"></textarea>
-        </div>
-        <div>
-          <label for="q2">2. На каком масле или жире готовили?</label>
-          <input type="text" id="q2" placeholder="Например: гхи / подсолнечное / не знаю">
-        </div>
-        <div>
-          <label for="q3">3. Пили что-нибудь во время еды или сразу после?<span class="hint">Что именно и какое — холодное, тёплое, горячее. Если ничего — так и напишите.</span></label>
-          <input type="text" id="q3" placeholder="Например: стакан холодной воды / ничего">
-        </div>
-        <div class="row2">
-          <div>
-            <label for="q4">4. Это завтрак, обед, ужин или перекус?</label>
-            <select id="q4"><option value="">— не указано —</option><option>завтрак</option><option>обед</option><option>ужин</option><option>перекус</option></select>
-          </div>
-          <div>
-            <label for="q6">6. Хватает до следующей еды?</label>
-            <select id="q6"><option value="">— не указано —</option><option>хватает до следующего приёма</option><option>через пару часов тянет перекусить</option></select>
-          </div>
-        </div>
-        <div>
-          <label for="q5">5. С чего начинаете есть?<span class="hint">Если на тарелке несколько компонентов. Для супа, каши или одного блюда — пропустите.</span></label>
-          <input type="text" id="q5" placeholder="Например: с котлеты">
-        </div>
-        <p class="hint">Пустые поля не отправляются — так можно проверить, как бот обходится без ответа.</p>
-      </div>
-
-      <div class="actions">
-        <button type="submit" class="primary" id="run">Разобрать</button>
-        <button type="button" id="reset">Новая тарелка</button>
-      </div>
-      <div class="status" id="status" role="status"></div>
-
-      <details id="promptDetails">
-        <summary>Промпт бота</summary>
-        <textarea id="promptBox" spellcheck="false" aria-label="Текст промпта" placeholder="Загружаю промпт…"></textarea>
-        <div class="prompt-actions">
-          <span id="promptState">Исходный промпт</span>
-          <button type="button" class="link" id="promptReset">Вернуть исходный</button>
-          <button type="button" class="link" id="promptCopy">Скопировать</button>
-        </div>
-        <p class="hint" style="margin-top:6px">Правки действуют только у вас в браузере и до перезагрузки страницы. Файл prompt.md на сервере не меняется.</p>
-      </details>
-    </form>
-
-    <section class="panel" aria-live="polite">
-      <div class="result-head">
-        <h2>Ответ бота</h2>
-        <span class="badge" id="badge">Ждёт тарелку</span>
-      </div>
-      <div class="answer" id="answer"><p class="hint">Здесь появится разбор. Загрузите фото, ответьте на вопросы и нажмите «Разобрать».</p></div>
-      <div class="actions">
-        <button type="button" id="copyAnswer">Скопировать ответ</button>
-      </div>
-      <div class="meta" id="meta"></div>
-    </section>
+    <div class="code"><label for="code" class="hint" style="margin:0">Код доступа</label><input type="text" id="code" placeholder="код"></div>
   </div>
+
+  <div class="chat" id="chat" aria-live="polite"></div>
+
+  <div class="actions">
+    <button type="button" id="restart">Новая тарелка</button>
+    <button type="button" id="copyAnswer" hidden>Скопировать ответ</button>
+    <span class="small" id="meta"></span>
+  </div>
+  <div class="status err" id="status" role="status"></div>
+
+  <details id="promptDetails" class="panel">
+    <summary>Правила оценки (prompt.md)</summary>
+    <textarea id="promptBox" spellcheck="false" aria-label="Текст правил" placeholder="Загружаю…"></textarea>
+    <div class="prompt-actions">
+      <span id="promptState">Исходные правила</span>
+      <button type="button" class="link" id="promptReset">Вернуть исходные</button>
+    </div>
+    <p class="hint" style="margin-top:6px">Правки действуют только у вас в браузере до перезагрузки. Формулировки ответа — в lib/compose.js на GitHub.</p>
+  </details>
 </div>
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  const store = {
-    get(k){ try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } },
-    set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
-  };
+  const store = { get(k){ try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
   $("code").value = store.get("razbor_code");
   $("code").addEventListener("change", () => store.set("razbor_code", $("code").value.trim()));
 
-  // ---- prompt ----
   let ORIGINAL = "";
   const promptBox = $("promptBox");
   fetch("/prompt.md").then(r => r.ok ? r.text() : "").then(t => { ORIGINAL = t.trim(); promptBox.value = ORIGINAL; }).catch(() => {});
   const edited = () => ORIGINAL && promptBox.value.trim() !== ORIGINAL;
-  promptBox.addEventListener("input", () => { $("promptState").textContent = edited() ? "Промпт изменён — разбор пойдёт по вашей версии" : "Исходный промпт"; });
-  $("promptReset").onclick = () => { promptBox.value = ORIGINAL; $("promptState").textContent = "Исходный промпт"; };
+  promptBox.addEventListener("input", () => { $("promptState").textContent = edited() ? "Правила изменены — разбор пойдёт по вашей версии" : "Исходные правила"; });
+  $("promptReset").onclick = () => { promptBox.value = ORIGINAL; $("promptState").textContent = "Исходные правила"; };
 
-  async function copyText(text, btn){
-    const old = btn.textContent;
-    try { await navigator.clipboard.writeText(text); btn.textContent = "Скопировано"; }
-    catch(e){ btn.textContent = "Не вышло — выделите вручную"; }
-    setTimeout(() => btn.textContent = old, 1800);
+  const chat = $("chat");
+  let photo = null, answers = {}, lastText = "";
+
+  function scroll(){ chat.lastElementChild?.scrollIntoView({ block: "end", behavior: "smooth" }); }
+  function bot(text){ const d = document.createElement("div"); d.className = "msg bot"; d.textContent = text; chat.append(d); scroll(); return d; }
+  function me(text){ const d = document.createElement("div"); d.className = "msg me"; d.textContent = text; chat.append(d); scroll(); return d; }
+  function clearControls(){ chat.querySelectorAll(".chips,.composer").forEach(n => n.remove()); }
+  function chips(options, onPick){
+    const w = document.createElement("div"); w.className = "chips";
+    options.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = o; b.onclick = () => { clearControls(); me(o); onPick(o); }; w.append(b); });
+    chat.append(w); scroll(); return w;
   }
-  $("promptCopy").onclick = e => copyText(promptBox.value, e.currentTarget);
-
-  // ---- photo ----
-  let photo = null;
-  const drop = $("drop"), fileInput = $("photo"), preview = $("preview");
-  function setPhoto(file){
-    if (preview.src) URL.revokeObjectURL(preview.src);
-    photo = file || null;
-    if (photo){
-      preview.src = URL.createObjectURL(photo); preview.hidden = false; $("ph").hidden = true;
-      $("photoName").textContent = photo.name || "Фото выбрано"; $("clearPhoto").hidden = false;
-    } else {
-      preview.removeAttribute("src"); preview.hidden = true; $("ph").hidden = false; fileInput.value = "";
-      $("photoName").textContent = "Фото не выбрано — бот должен ответить «Не вижу тарелку»"; $("clearPhoto").hidden = true;
-    }
+  function textInput(placeholder, onSend, skipLabel){
+    const w = document.createElement("div"); w.className = "composer";
+    const t = document.createElement("textarea"); t.placeholder = placeholder; t.rows = 2;
+    const b = document.createElement("button"); b.type = "button"; b.className = "primary"; b.textContent = "Отправить";
+    const send = () => { const v = t.value.trim(); if (!v) { t.focus(); return; } clearControls(); me(v); onSend(v); };
+    b.onclick = send;
+    t.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+    w.append(t, b); chat.append(w);
+    if (skipLabel) chips([skipLabel], () => onSend(""));
+    t.focus(); scroll();
   }
-  fileInput.addEventListener("change", () => setPhoto(fileInput.files[0]));
-  ["dragenter","dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
-  ["dragleave","drop"].forEach(t => drop.addEventListener(t, () => drop.classList.remove("over")));
-  drop.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith("image/")) setPhoto(f); });
-  document.addEventListener("paste", e => {
-    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
-    if (item) setPhoto(item.getAsFile());
-  });
-  $("clearPhoto").onclick = () => setPhoto(null);
 
-  // Сжимаем фото до ~1568 px по длинной стороне — так быстрее и укладываемся в лимит Vercel (4,5 МБ на запрос).
   async function photoToBase64(file){
     const bmp = await createImageBitmap(file);
     const max = 1568, k = Math.min(1, max / Math.max(bmp.width, bmp.height));
-    const c = document.createElement("canvas");
-    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
     c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
     const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
     const buf = new Uint8Array(await blob.arrayBuffer());
@@ -236,52 +186,81 @@ summary{cursor:pointer;font-weight:600}
     return { media_type: "image/jpeg", data: btoa(s) };
   }
 
-  // ---- answer rendering ----
-  const answerEl = $("answer");
-  let lastText = "";
-  function render(text){
-    lastText = text;
-    answerEl.classList.remove("thinking");
-    answerEl.replaceChildren();
-    let first = true;
-    for (const raw of text.replace(/\r/g,"").split("\n")){
-      const t = raw.replace(/\\$/,"").trim();
-      if (!t){ if (answerEl.lastChild && !answerEl.lastChild.classList.contains("gap")){ const g=document.createElement("div"); g.className="gap"; answerEl.append(g);} continue; }
+  // ---- сценарий ----
+  function start(){
+    chat.replaceChildren(); clearControls(); photo = null; answers = {}; lastText = "";
+    $("copyAnswer").hidden = true; $("meta").textContent = ""; $("status").textContent = "";
+    bot("Здравствуйте! Пришлите фото своей тарелки — разберу её по системе врача-гастроэнтеролога.");
+    const w = document.createElement("div"); w.className = "composer";
+    const lab = document.createElement("label"); lab.className = "upload"; 
+    const btn = document.createElement("span"); btn.className = "chip"; btn.textContent = "📷 Загрузить фото";
+    const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.setAttribute("aria-label", "Фото тарелки");
+    lab.append(btn, inp); w.append(lab); chat.append(w);
+    inp.addEventListener("change", () => { if (inp.files[0]) gotPhoto(inp.files[0]); });
+  }
+  document.addEventListener("paste", e => {
+    if (photo || !chat.querySelector(".upload")) return;
+    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+    if (item) gotPhoto(item.getAsFile());
+  });
+  function gotPhoto(file){
+    clearControls(); photo = file;
+    const d = document.createElement("div"); d.className = "msg me";
+    const img = document.createElement("img"); img.alt = "Фото тарелки"; img.src = URL.createObjectURL(file); d.append(img); chat.append(d);
+    bot("Что в тарелке? Перечислите всё, включая соус и заправку. Если что-то покупное — напишите название.");
+    textInput("Например: гречка, котлета из индейки, салат из огурцов и укропа", v => { answers.what = v; askMeal(); }, "Пусть бот определит по фото");
+  }
+  function askMeal(){
+    bot("Это завтрак, обед, ужин или перекус?");
+    chips(["Завтрак", "Обед", "Ужин", "Перекус"], v => { answers.meal = v.toLowerCase(); askDrink(); });
+  }
+  function askDrink(){
+    bot("Что пили во время еды или сразу после?");
+    chips(["Ничего", "Тёплую воду", "Холодную воду", "Чай", "Кофе", "Сок или сладкий напиток", "Алкоголь"], v => {
+      const map = { "Ничего": "ничего", "Тёплую воду": "тёплая вода, стакан", "Холодную воду": "холодная вода, стакан", "Чай": "чай", "Кофе": "кофе сразу после еды", "Сок или сладкий напиток": "сок или сладкий напиток", "Алкоголь": "алкоголь" };
+      answers.drink = map[v] || v; askOil();
+    });
+  }
+  function askOil(){
+    bot("На чём готовили?");
+    chips(["Не жарили: варка, на пару, запекание", "Подсолнечное масло", "Оливковое масло", "Сливочное масло", "Масло гхи", "Не знаю"], v => { answers.oil = v; askFull(); });
+  }
+  function askFull(){
+    bot("Хватает этой еды до следующего приёма?");
+    chips(["Хватает", "Через пару часов тянет перекусить", "Не знаю"], v => { answers.full = v.toLowerCase(); analyze(); });
+  }
+
+  function userMessage(){
+    const L = [photo ? "[Фото тарелки приложено.]" : "[Фото не приложено.]"];
+    L.push("Что в тарелке: " + (answers.what || "не указано, определи по фото"));
+    L.push("Приём пищи: " + (answers.meal || "не указано"));
+    L.push("Напиток к еде: " + (answers.drink || "не указано"));
+    L.push("На чём готовили: " + (answers.oil || "не указано"));
+    L.push("Хватает ли до следующего приёма: " + (answers.full || "не указано"));
+    return L.join("\n");
+  }
+
+  function renderAnswer(text){
+    const d = document.createElement("div"); d.className = "msg bot answer-msg"; 
+    const box = document.createElement("div"); box.className = "answer"; d.append(box);
+    for (const raw of text.replace(/\r/g, "").split("\n")){
+      const t = raw.trim();
+      if (!t){ if (box.lastChild && !box.lastChild.classList.contains("gap")){ const g = document.createElement("div"); g.className = "gap"; box.append(g); } continue; }
       const p = document.createElement("p");
       if (t.startsWith("🔴")) p.className = "crit r";
       else if (t.startsWith("🟡")) p.className = "crit y";
       else if (t.startsWith("🟢")) p.className = "crit g";
       else if (t.startsWith("🍽")) p.className = "dish";
-      else if (first && t.startsWith("Разбор по системе")) p.className = "disc";
-      else if (t.startsWith("Это не медицинская")) p.className = "disc";
-      p.textContent = t; answerEl.append(p); first = false;
+      else if (t.startsWith("Это не медицинская") || t.startsWith("Разбор по системе")) p.className = "disc";
+      p.textContent = t; box.append(p);
     }
-  }
-  $("copyAnswer").onclick = e => copyText(lastText, e.currentTarget);
-
-  function userMessage(){
-    const q = [
-      ["1. Что в тарелке?", $("q1").value.trim()],
-      ["2. На каком масле или жире готовили?", $("q2").value.trim()],
-      ["3. Пили что-нибудь во время еды или сразу после?", $("q3").value.trim()],
-      ["4. Это завтрак, обед, ужин или перекус?", $("q4").value.trim()],
-      ["5. С чего начинаете есть?", $("q5").value.trim()],
-      ["6. Хватает ли этой еды до следующего приёма?", $("q6").value.trim()],
-    ].filter(([,a]) => a);
-    const parts = [photo ? "[Фото тарелки приложено.]" : "[Фото не приложено.]"];
-    if (q.length) parts.push(q.map(([k,a]) => k + "\n" + a).join("\n\n"));
-    return parts.join("\n\n");
+    chat.append(d); scroll();
   }
 
-  const run = $("run"), status = $("status");
-  $("form").addEventListener("submit", async e => {
-    e.preventDefault();
+  async function analyze(){
+    clearControls();
+    const wait = bot("Разбираю тарелку… Обычно 15–40 секунд."); wait.classList.add("typing");
     store.set("razbor_code", $("code").value.trim());
-    run.disabled = true; status.className = "status"; status.textContent = "";
-    $("badge").textContent = "Разбираю…";
-    answerEl.classList.add("thinking");
-    answerEl.replaceChildren(Object.assign(document.createElement("p"), { textContent: "Бот разбирает тарелку… Обычно 15–40 секунд." }));
-    $("meta").textContent = "";
     try {
       const payload = { code: $("code").value.trim(), message: userMessage() };
       if (photo) payload.image = await photoToBase64(photo);
@@ -289,23 +268,22 @@ summary{cursor:pointer;font-weight:600}
       const r = await fetch("/api/analyze", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
       const data = await r.json().catch(() => ({ error: "Сервер вернул не JSON (код " + r.status + ")." }));
       if (!r.ok) throw new Error(data.error || ("Ошибка " + r.status));
-      render(data.text || "(пустой ответ)");
-      $("badge").textContent = "Готово";
-      $("meta").textContent = "За " + data.seconds + " с · " + (data.model || "") + (edited() ? " · по изменённому промпту" : "") + (data.stop_reason === "max_tokens" ? " · ответ обрезан по длине" : "");
+      wait.remove(); lastText = data.text || ""; renderAnswer(lastText);
+      $("copyAnswer").hidden = false;
+      $("meta").textContent = "За " + data.seconds + " с · " + (data.model || "") + (edited() ? " · по изменённым правилам" : "");
     } catch(err){
-      answerEl.replaceChildren(); $("badge").textContent = "Ошибка";
-      status.className = "status err"; status.textContent = err.message || String(err);
-    } finally {
-      run.disabled = false;
+      wait.remove(); $("status").textContent = err.message || String(err);
+      bot("Не получилось разобрать. Проверьте код доступа и нажмите «Новая тарелка».");
     }
-  });
+  }
 
-  $("reset").onclick = () => {
-    ["q1","q2","q3","q5"].forEach(id => $(id).value = "");
-    $("q4").value = ""; $("q6").value = "";
-    setPhoto(null); lastText = "";
-    answerEl.replaceChildren(); $("badge").textContent = "Ждёт тарелку"; $("meta").textContent = ""; status.textContent = "";
+  $("restart").onclick = start;
+  $("copyAnswer").onclick = async e => {
+    const btn = e.currentTarget, old = btn.textContent;
+    try { await navigator.clipboard.writeText(lastText); btn.textContent = "Скопировано"; } catch { btn.textContent = "Не вышло"; }
+    setTimeout(() => btn.textContent = old, 1600);
   };
+  start();
 })();
 </script>
 
