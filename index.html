@@ -226,7 +226,7 @@ summary{cursor:pointer;font-weight:600}
     chips(["Не жарили: варка, на пару, запекание", "Подсолнечное масло", "Оливковое масло", "Сливочное масло", "Масло гхи", "Не знаю"], v => { answers.oil = v; askFull(); });
   }
   function askFull(){
-    bot("Хватает этой еды до следующего приёма?");
+    bot("Хватает этой еды до следующего приёма пищи?");
     chips(["Хватает", "Через пару часов тянет перекусить", "Не знаю"], v => { answers.full = v.toLowerCase(); analyze(); });
   }
 
@@ -251,7 +251,7 @@ summary{cursor:pointer;font-weight:600}
       else if (t.startsWith("🟡")) p.className = "crit y";
       else if (t.startsWith("🟢")) p.className = "crit g";
       else if (t.startsWith("🍽")) p.className = "dish";
-      else if (t.startsWith("Это не медицинская") || t.startsWith("Разбор по системе")) p.className = "disc";
+      else if (t.startsWith("Это не медицинская") || t.startsWith("Разбор по системе") || t.startsWith("* ")) p.className = "disc";
       p.textContent = t; box.append(p);
     }
     chat.append(d); scroll();
