@@ -96,7 +96,8 @@ function finish(res, raw, message, meta) {
     return;
   }
   const full = /Хватает ли до следующего приёма:\s*хватает/i.test(message || "");
-  res.status(200).json({ text: compose(j, { full }), json: j, ...meta });
+  const meal = ((message || "").match(/Приём пищи:\s*(завтрак|обед|ужин|перекус)/i) || [])[1] || "";
+  res.status(200).json({ text: compose(j, { full, meal }), json: j, ...meta });
 }
 
 // OpenAI (тот же GPT, что в ChatGPT): включается, если задан OPENAI_API_KEY.
